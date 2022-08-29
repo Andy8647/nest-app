@@ -26,8 +26,14 @@ export class EventsController {
     return this.eventsService.findAll();
   }
 
+  @Get('practice')
+  async practice() {
+    return await this.eventsService.practice();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
+    console.log('findOne');
     return this.eventsService.findOne(id);
   }
 

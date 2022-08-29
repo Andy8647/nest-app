@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
-import { Repository } from 'typeorm';
+import { Like, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/createEvent.dto';
 import { UpdateEventDto } from './dto/updateEvent.dto';
 
@@ -22,6 +22,25 @@ export class EventsService {
       throw new NotFoundException(`Event with id ${id} not found`);
     }
     return event;
+  }
+
+  public async practice(): Promise<Event[]> {
+    return await this.eventRepository.find({
+      select: ['id', 'when'],
+      where: [
+        {
+          id: MoreThan(3),
+          when: MoreThan(new Date('2019-01-13T12:00:00')),
+        },
+        {
+          description: Like('%birthday%'),
+        },
+      ],
+      take: 2,
+      order: {
+        id: 'DESC',
+      },
+    });
   }
 
   public async create(createEventDto: CreateEventDto): Promise<Event> {
