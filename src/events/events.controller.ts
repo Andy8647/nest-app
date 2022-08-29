@@ -5,6 +5,7 @@ import {
   Get,
   Inject,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -32,8 +33,8 @@ export class EventsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    console.log('findOne');
+  findOne(@Param('id', new ParseIntPipe()) id: number) {
+    console.log(typeof id);
     return this.eventsService.findOne(id);
   }
 
@@ -43,12 +44,15 @@ export class EventsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+  update(
+    @Param('id', new ParseIntPipe()) id: number,
+    @Body() updateEventDto: UpdateEventDto,
+  ) {
     return this.eventsService.update(id, updateEventDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseIntPipe()) id: number) {
     return this.eventsService.remove(id);
   }
 }

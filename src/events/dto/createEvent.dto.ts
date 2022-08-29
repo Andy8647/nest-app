@@ -1,4 +1,4 @@
-import { IsDate, IsString } from 'class-validator';
+import { IsDateString, IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEventDto {
@@ -7,6 +7,7 @@ export class CreateEventDto {
     example: 'Birthday party',
   })
   @IsString()
+  @Length(5, 255, { message: 'Name must be between 5 and 255 characters' })
   name: string;
 
   @ApiProperty({
@@ -17,7 +18,7 @@ export class CreateEventDto {
   description: string;
 
   @ApiProperty({ description: 'The date of the event', example: '2020-01-01' })
-  @IsDate()
+  @IsDateString()
   when: Date;
 
   @ApiProperty({
