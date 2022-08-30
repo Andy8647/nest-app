@@ -4,6 +4,7 @@ import { Event } from './entities/event.entity';
 import { Like, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { Attendee } from './entities/attendee.entity';
 
 @Injectable()
 export class EventsService {
@@ -12,6 +13,8 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(Attendee)
+    private readonly attendeeRepository: Repository<Attendee>,
   ) {}
 
   public async findAll(): Promise<Event[]> {
@@ -49,7 +52,21 @@ export class EventsService {
   }
 
   public async practice2(): Promise<Event> {
-    return await this.eventRepository.findOne(1, { relations: ['attendees'] });
+    // return await this.eventRepository.findOne(1, { relations: ['attendees'] });
+    const event = await this.eventRepository.findOne(1, {
+      relations: ['attendees'],
+    });
+
+    const attendee = new Attendee();
+    attendee.name = 'Use Cascade';
+    // attendee.event = event;
+
+    event.attendees.push(attendee);
+
+    // await this.attendeeRepository.save(attendee);
+    await this.eventRepository.save(event);
+
+    return event;
   }
 
   public async create(createEventDto: CreateEventDto): Promise<Event> {
