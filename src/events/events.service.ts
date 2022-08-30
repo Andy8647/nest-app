@@ -1,19 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
 import { Like, MoreThan, Repository } from 'typeorm';
-import { CreateEventDto } from './dto/createEvent.dto';
-import { UpdateEventDto } from './dto/updateEvent.dto';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 @Injectable()
 export class EventsService {
+  private readonly logger = new Logger(EventsService.name);
+
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
   ) {}
 
   public async findAll(): Promise<Event[]> {
-    return await this.eventRepository.find({});
+    this.logger.log('findAll');
+    const events = await this.eventRepository.find({});
+    this.logger.debug(`found ${events.length} events`);
+    return events;
   }
 
   public async findOne(id: number): Promise<Event> {
@@ -41,6 +46,10 @@ export class EventsService {
         id: 'DESC',
       },
     });
+  }
+
+  public async practice2(): Promise<Event> {
+    return await this.eventRepository.findOne(1, { relations: ['attendees'] });
   }
 
   public async create(createEventDto: CreateEventDto): Promise<Event> {

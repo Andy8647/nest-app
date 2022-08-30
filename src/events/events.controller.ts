@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateEventDto } from './dto/createEvent.dto';
-import { UpdateEventDto } from './dto/updateEvent.dto';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 @ApiTags('events')
 @Controller('events')
@@ -32,22 +32,32 @@ export class EventsController {
     return await this.eventsService.practice();
   }
 
+  @Get('practice2')
+  async practice2() {
+    return await this.eventsService.practice2();
+  }
+
   @Get(':id')
   findOne(@Param('id', new ParseIntPipe()) id: number) {
-    console.log(typeof id);
     return this.eventsService.findOne(id);
   }
 
   @Post()
-  create(@Body() createEventDto: CreateEventDto) {
+  create(
+    @Body()
+    createEventDto: CreateEventDto,
+  ) {
+    console.log('in create: ', createEventDto.address.length);
     return this.eventsService.create(createEventDto);
   }
 
   @Patch(':id')
   update(
     @Param('id', new ParseIntPipe()) id: number,
-    @Body() updateEventDto: UpdateEventDto,
+    @Body()
+    updateEventDto: UpdateEventDto,
   ) {
+    console.log('in update: ', updateEventDto.address.length);
     return this.eventsService.update(id, updateEventDto);
   }
 

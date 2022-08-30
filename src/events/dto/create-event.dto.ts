@@ -17,14 +17,18 @@ export class CreateEventDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ description: 'The date of the event', example: '2020-01-01' })
+  @ApiProperty({
+    description: 'The date of the event',
+    example: '2022-01-05T13:15:30Z',
+  })
   @IsDateString()
-  when: Date;
+  when: string;
 
   @ApiProperty({
     description: 'The address of the event',
     example: '123 Main St',
   })
+  @Length(5, 255)
   @IsString()
   address: string;
 }
