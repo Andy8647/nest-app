@@ -20,4 +20,10 @@ export class Event {
 
   @OneToMany(() => Attendee, (attendee) => attendee.event, { cascade: true })
   attendees: Attendee[];
+
+  // virtual property
+  attendeeCount?: number;
+  attendeeRejectedCount?: number;
+  attendeeMaybeCount?: number;
+  attendeeAcceptedCount?: number;
 }
