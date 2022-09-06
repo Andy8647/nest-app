@@ -4,27 +4,42 @@ import {
   Delete,
   Get,
   Inject,
+  Logger,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { ListEvents } from './filter/list.events';
 
 @ApiTags('events')
 @Controller('events')
 export class EventsController {
+  private readonly logger = new Logger(EventsController.name);
+
   constructor(
     @Inject(EventsService) private readonly eventsService: EventsService,
   ) {}
 
   @Get()
-  findAll(@Query() query: any) {
-    return this.eventsService.findAll();
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(@Query() filter: ListEvents) {
+    return await this.eventsService.getEventsWithAttendeeCountFilteredPaginated(
+      filter,
+      {
+        currentPage: filter.page,
+        limit: filter.limit,
+        total: true,
+      },
+    );
   }
 
   @Get('practice')
@@ -62,7 +77,10 @@ export class EventsController {
   }
 
   @Delete(':id')
-  remove(@Param('id', new ParseIntPipe()) id: number) {
-    return this.eventsService.remove(id);
+  async remove(@Param('id', new ParseIntPipe()) id: number) {
+    const result = await this.eventsService.remove(id);
+    if (result.affected !== 1) {
+      throw new NotFoundException(`Event with id ${id} not found`);
+    }
   }
 }

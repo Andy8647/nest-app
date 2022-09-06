@@ -1,10 +1,16 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
-import { Like, MoreThan, Repository } from 'typeorm';
+import { DeleteResult, Like, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Attendee, EAttendeeAnswer } from './entities/attendee.entity';
+import { EWhenEventFilter, ListEvents } from './filter/list.events';
+import {
+  paginate,
+  PaginateOptions,
+  PaginateResult,
+} from '../common/pagination/paginator';
 
 @Injectable()
 export class EventsService {
@@ -51,6 +57,44 @@ export class EventsService {
             answer: EAttendeeAnswer.Rejected,
           }),
       );
+  }
+
+  private getEventsWithAttendeeCountFiltered(filter?: ListEvents) {
+    let query = this.getEventsWithAttendeeCountQuery();
+
+    if (!filter) {
+      return query;
+    }
+    if (filter.when) {
+      if (filter.when == EWhenEventFilter.Today) {
+        query = query.andWhere(
+          `e.when >= CURDATE() AND e.when <= CURDATE() + INTERVAL 1 DAY`,
+        );
+      }
+      if (filter.when == EWhenEventFilter.Tomorrow) {
+        query = query.andWhere(`e.when >= CurDate() + INTERVAL 1 DAY`);
+      }
+      if (filter.when == EWhenEventFilter.ThisWeek) {
+        query = query.andWhere(`YEARWEEK(e.when, 1) = YEARWEEK(CURDATE(), 1)`);
+      }
+      if (filter.when == EWhenEventFilter.NextWeek) {
+        query = query.andWhere(
+          `YEARWEEK(e.when, 1) = YEARWEEK(CURDATE(), 1) + 1`,
+        );
+      }
+    }
+    this.logger.debug(query.getSql());
+    return query;
+  }
+
+  public async getEventsWithAttendeeCountFilteredPaginated(
+    filter: ListEvents,
+    paginateOptions: PaginateOptions,
+  ) {
+    return await paginate(
+      await this.getEventsWithAttendeeCountFiltered(filter),
+      paginateOptions,
+    );
   }
 
   public async findAll(): Promise<Event[]> {
@@ -130,11 +174,16 @@ export class EventsService {
     return await this.eventRepository.save({ ...event, ...updateEventDto });
   }
 
-  public async remove(id: number): Promise<void> {
-    const event = await this.findOne(id);
-    if (!event) {
-      throw new NotFoundException(`Event with id ${id} not found`);
-    }
-    await this.eventRepository.remove(event);
+  public async remove(id: number): Promise<DeleteResult> {
+    // const event = await this.findOne(id);
+    // if (!event) {
+    //   throw new NotFoundException(`Event with id ${id} not found`);
+    // }
+    // await this.eventRepository.remove(event);
+    return await this.eventRepository
+      .createQueryBuilder('e')
+      .delete()
+      .where('id = :id', { id })
+      .execute();
   }
 }
