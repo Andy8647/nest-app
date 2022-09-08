@@ -9,6 +9,7 @@ export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
   public getTokenForUser(user: User): string {
+    this.logger.debug(`Generating token for user ${user.username}`);
     return this.jwtService.sign({ username: user.username, sub: user.id });
   }
 }
