@@ -2,7 +2,7 @@ import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
-import { User } from './entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('auth')

@@ -4,8 +4,8 @@ import { registerAs } from '@nestjs/config';
 import { Attendee } from '../events/entities/attendee.entity';
 import { Subject } from '../school/entities/subject.entity';
 import { Teacher } from '../school/entities/teacher.entity';
-import { User } from '../auth/entities/user.entity';
-import { Profile } from '../auth/entities/profile.entity';
+import { User } from '../user/entities/user.entity';
+import { Profile } from '../user/entities/profile.entity';
 
 export default registerAs(
   'orm.config',

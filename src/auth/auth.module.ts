@@ -1,18 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Profile } from './entities/profile.entity';
+import { User } from '../user/entities/user.entity';
 import { LocalStrategy } from './strategy/local.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Profile]),
+    TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.AUTH_SECRET,
@@ -20,7 +17,8 @@ import { UserService } from './user/user.service';
       }),
     }),
   ],
-  providers: [LocalStrategy, JwtStrategy, AuthService, UserService],
-  controllers: [AuthController, UserController],
+  providers: [LocalStrategy, JwtStrategy, AuthService],
+  exports: [AuthService],
+  controllers: [AuthController],
 })
 export class AuthModule {}

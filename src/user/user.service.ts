@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entities/user.entity';
+import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { AuthService } from '../auth.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
@@ -22,6 +27,11 @@ export class UserService {
     return this.userRepository.findOne({ where: { email } });
   }
 
+  /**
+   * Create a new user
+   * @param createUserDto
+   * @desc This method will create a new user in the database and login, email and username must be unique
+   */
   public async createUser(createUserDto: CreateUserDto) {
     if (createUserDto.password !== createUserDto.retypedPassword) {
       this.logger.warn('Password mismatch');

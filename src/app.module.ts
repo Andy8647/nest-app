@@ -6,6 +6,7 @@ import { EventsModule } from './events/events.module';
 import { ConfigModule } from '@nestjs/config';
 import { SchoolModule } from './school/school.module';
 import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 
@@ -23,6 +24,7 @@ import ormConfigProd from './config/orm.config.prod';
     EventsModule,
     SchoolModule,
     AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
