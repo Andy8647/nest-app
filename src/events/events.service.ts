@@ -1,7 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
-import { DeleteResult, Like, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Attendee, EAttendeeAnswer } from './entities/attendee.entity';
@@ -11,6 +16,7 @@ import {
   PaginateOptions,
   PaginateResult,
 } from '../common/pagination/paginator';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class EventsService {
@@ -105,11 +111,6 @@ export class EventsService {
   }
 
   public async findOne(id: number): Promise<Event> {
-    // const event = await this.eventRepository.findOne(id);
-    // if (!event) {
-    //   throw new NotFoundException(`Event with id ${id} not found`);
-    // }
-    // return event;
     const query = await this.getEventsWithAttendeeCountQuery().andWhere(
       'e.id = :id',
       {
@@ -121,69 +122,46 @@ export class EventsService {
     return await query.getOne();
   }
 
-  public async practice(): Promise<Event[]> {
-    return await this.eventRepository.find({
-      select: ['id', 'when'],
-      where: [
-        {
-          id: MoreThan(3),
-          when: MoreThan(new Date('2019-01-13T12:00:00')),
-        },
-        {
-          description: Like('%birthday%'),
-        },
-      ],
-      take: 2,
-      order: {
-        id: 'DESC',
-      },
+  public async createEvent(
+    createEventDto: CreateEventDto,
+    user: User,
+  ): Promise<Event> {
+    return await this.eventRepository.save({
+      ...createEventDto,
+      organizer: user,
+      when: new Date(createEventDto.when),
     });
-  }
-
-  public async practice2(): Promise<Event[]> {
-    // // return await this.eventRepository.findOne(1, { relations: ['attendees'] });
-    // const event = await this.eventRepository.findOne(1, {
-    //   relations: ['attendees'],
-    // });
-    //
-    // const attendee = new Attendee();
-    // attendee.name = 'Use Cascade';
-    // // attendee.event = event;
-    //
-    // event.attendees.push(attendee);
-    //
-    // // await this.attendeeRepository.save(attendee);
-    // await this.eventRepository.save(event);
-    //
-    // return event;
-    return await this.getEventsWithAttendeeCountQuery().getMany();
-  }
-
-  public async create(createEventDto: CreateEventDto): Promise<Event> {
-    return await this.eventRepository.save(createEventDto);
   }
 
   public async update(
     id: number,
     updateEventDto: UpdateEventDto,
+    user: User,
   ): Promise<Event> {
     const event = await this.findOne(id);
     if (!event) {
       throw new NotFoundException(`Event with id ${id} not found`);
     }
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to update this event`,
+      );
+    }
     return await this.eventRepository.save({ ...event, ...updateEventDto });
   }
 
-  public async remove(id: number): Promise<DeleteResult> {
-    // const event = await this.findOne(id);
-    // if (!event) {
-    //   throw new NotFoundException(`Event with id ${id} not found`);
-    // }
-    // await this.eventRepository.remove(event);
-    return await this.eventRepository
-      .createQueryBuilder('e')
-      .delete()
-      .where('id = :id', { id })
-      .execute();
+  public async remove(id: number, user: User) {
+    const event = await this.findOne(id);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${id} not found`);
+    }
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to delete this event`,
+      );
+    }
+    return await this.eventRepository.delete(id);
   }
 }
